@@ -669,6 +669,7 @@ static int more_start,		/* more text before start of screen?	    */
     lpromptw, rpromptw,		/* prompt widths on screen                  */
     lpromptwof,			/* left prompt width with real end position */
     lprompth,			/* lines taken up by the prompt		    */
+    cursorsaved,                /* whether prompt start position was saved  */
     rprompth,			/* right prompt height                      */
     vcs, vln,			/* video cursor position column & line	    */
     vmaxln,			/* video maximum number of lines	    */
@@ -979,6 +980,7 @@ zrefresh(void)
     int tmpalloced;		/* flag to free tmpline when finished	     */
     int remetafy;		/* flag that zle line is metafied	     */
     int rprompt_off = 1;	/* Offset of rprompt from right of screen    */
+    int savecursorneeded = 0;	/* prompt start position needs to be saved   */
     struct rparams rpms;
 #ifdef MULTIBYTE_SUPPORT
     int width;			/* width of wide character		     */
@@ -1118,7 +1120,13 @@ zrefresh(void)
 	zsetterm();
 #ifdef TIOCGWINSZ
 	if (winchanged) {
-	    moveto(0, 0);
+	    if (cursorsaved) {
+		tcout(TCRESTRCURSOR);
+		zputc(&zr_cr);
+		vln = vcs = 0;
+	    } else {
+		moveto(0, 0);
+	    }
 	    t0 = olnct;		/* this is to clear extra lines even when */
 	    winchanged = 0;	/* the terminal cannot TCCLEAREOD	  */
 	    listshown = 0;
@@ -1147,6 +1155,8 @@ zrefresh(void)
 	if (termflags & TERM_SHORT)
 	    vcs = 0;
 	else if (!clearflag && lpromptbuf[0]) {
+	    cursorsaved = 0;
+	    savecursorneeded = tccan(TCSAVECURSOR) && tccan(TCRESTRCURSOR);
 	    zputs(lpromptbuf, shout);
 	    if (lpromptwof == winw)
 		zputs("\n", shout);	/* works with both hasam and !hasam */
@@ -1167,6 +1177,7 @@ zrefresh(void)
    width comparisons can be made with winw, height comparisons with winh */
 
     if (termflags & TERM_SHORT) {
+	cursorsaved = 0;
 	singlerefresh(tmpline, tmpll, tmpcs);
 	goto singlelineout;
     }
@@ -1663,6 +1674,19 @@ individually */
 
     clearf = 0;
     oput_rpmpt = put_rpmpt;
+
+    if (savecursorneeded && lprompth + nlnct <= rwinh) {
+	moveto(1 - lprompth, 0);
+	tcout(TCSAVECURSOR);
+	cursorsaved = 1;
+    } else if (nlnct > olnct) {
+	/*
+	 * If the new buffer is taller than the old, it might have scrolled
+	 * the terminal window by creating new lines at the bottom. Our saved
+	 * cursor position can no longer be trusted.
+	 */
+	cursorsaved = 0;
+    }
 
 /* move to the new cursor position */
     moveto(rpms.nvln, rpms.nvcs);
