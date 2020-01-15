@@ -1269,6 +1269,7 @@ zleread(char **lp, char **rp, int flags, int context, char *init, char *finish)
     resetneeded = 0;
     fetchttyinfo = 0;
     trashedzle = 0;
+    maxheight = 0;
     raw_lp = lp;
     txtcurrentattrs = txtpendingattrs = txtunknownattrs = 0;
     lpromptbuf = promptexpand(lp ? *lp : NULL, 1, NULL, NULL);
