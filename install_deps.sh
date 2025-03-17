@@ -15,8 +15,8 @@ elif [ -f /etc/arch-release ] || grep -q 'ID.*arch' /etc/os-release 2>/dev/null;
     sudo pacman -Sy --noconfirm git autoconf yodl ncurses texinfo
 elif [ -f /etc/SuSE-release ] || [ -f /etc/opensuse-release ] || grep -q 'ID.*suse' /etc/os-release 2>/dev/null; then
     echo "Installing dependencies for openSUSE..."
-    zypper addrepo https://download.opensuse.org/repositories/Publishing/openSUSE_Factory/Publishing.repo
-    zypper refresh
+    sudo zypper addrepo https://download.opensuse.org/repositories/Publishing/openSUSE_Factory/Publishing.repo
+    sudo zypper refresh
     sudo zypper install -y git autoconf yodl ncurses-devel texinfo
 elif command -v brew >/dev/null 2>&1; then
     echo "Installing dependencies for macOS..."
