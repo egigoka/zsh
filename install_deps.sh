@@ -20,7 +20,7 @@ elif [ -f /etc/SuSE-release ] || [ -f /etc/opensuse-release ] || grep -q 'ID.*su
     sudo zypper install -y git autoconf yodl ncurses-devel texinfo
 elif command -v brew >/dev/null 2>&1; then
     echo "Installing dependencies for macOS..."
-    brew install autoconf yodl ncurses texinfo git
+    brew install autoconf ncurses texinfo git
 else
     echo "Could not detect your OS. Please install these packages manually: git autoconf yodl libncurses-dev/ncurses-devel texinfo"
     exit 1
